@@ -1,4 +1,3 @@
-// src/components/App.tsx
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
@@ -17,22 +16,20 @@ export default function App() {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Используем React Query для пагинации
   const { data, isLoading, isError } = useQuery({
     queryKey: ["movies", searchQuery, page],
     queryFn: () =>
       fetchMovies(
         `search/movie?query=${encodeURIComponent(searchQuery)}&page=${page}`
       ),
-    enabled: !!searchQuery, // запрос выполняется только если есть searchQuery
+    enabled: !!searchQuery,
   });
 
-  // Обновляем локальный state movies при получении данных
   const moviesData = data?.results || [];
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setPage(1); // при новом поиске сбрасываем страницу
+    setPage(1);
   };
 
   const handleSelectMovie = (movie: Movie) => {
@@ -58,7 +55,6 @@ export default function App() {
         <>
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
 
-          {/* Пагинация */}
           {data && data.total_pages > 1 && (
             <ReactPaginate
               pageCount={data.total_pages}

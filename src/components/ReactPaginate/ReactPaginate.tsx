@@ -12,7 +12,7 @@ export default function Pagination({
   setPage,
   totalPages,
 }: PaginationProps) {
-  if (totalPages <= 1) return null; // рендерим только если больше одной страницы
+  if (totalPages <= 1) return null;
 
   return (
     <ReactPaginate
