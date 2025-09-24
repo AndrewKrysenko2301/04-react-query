@@ -16,7 +16,7 @@ export default function App() {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["movies", searchQuery, page],
     queryFn: () =>
       fetchMovies(
@@ -50,13 +50,7 @@ export default function App() {
       <Toaster position="top-right" />
 
       {isLoading && <Loader />}
-      {isError && (
-        <>
-          {console.log(error)}
-          <ErrorMessage />
-        </>
-      )}
-
+      {isError && <ErrorMessage />}
       {!isLoading && !isError && (
         <>
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
