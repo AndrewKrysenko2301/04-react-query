@@ -24,7 +24,7 @@ export default function App() {
       ),
     enabled: !!searchQuery,
   });
-
+  //query
   const moviesData = data?.results || [];
 
   const handleSearch = (query: string) => {
