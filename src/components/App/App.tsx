@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import SearchBar from "../SearchBar/SearchBar";
@@ -8,27 +9,36 @@ import MovieModal from "../MovieModal/MovieModal";
 import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
 import type { MoviesResponse } from "../../services/movieService";
-import ReactPaginate from "react-paginate";
-import css from "./App.module.css";
-import { useState, useEffect, useMemo } from "react";
+import Pagination from "../ReactPaginate/ReactPaginate";
 
 export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, isLoading, isError, isSuccess, isFetching } = useQuery({
+  const [previousData, setPreviousData] = useState<MoviesResponse | null>(null);
+
+  const { data, isLoading, isError, isSuccess, isFetching } = useQuery<
+    MoviesResponse,
+    Error
+  >({
     queryKey: ["movies", searchQuery, page],
     queryFn: () => fetchMovies(searchQuery, page),
     enabled: !!searchQuery,
-    placeholderData: (): MoviesResponse => ({
+    placeholderData: previousData || {
       page: 1,
       results: [],
       total_pages: 0,
       total_results: 0,
-    }),
+    },
     staleTime: 5000,
   });
+
+  useEffect(() => {
+    if (data) {
+      setPreviousData(data);
+    }
+  }, [data]);
 
   const moviesData = useMemo(() => data?.results || [], [data?.results]);
   const totalPages = data?.total_pages || 0;
@@ -46,12 +56,12 @@ export default function App() {
     setSelectedMovie(null);
   };
 
-  const handlePageChange = ({ selected }: { selected: number }) => {
-    setPage(selected + 1);
+  const handlePageChange = (selectedPage: number) => {
+    setPage(selectedPage);
   };
 
   useEffect(() => {
-    if (isSuccess && searchQuery && moviesData.length === 0) {
+    if (isSuccess && searchQuery.trim() !== "" && moviesData.length === 0) {
       toast.error("No movies found for your request.");
     }
   }, [isSuccess, moviesData, searchQuery]);
@@ -67,20 +77,11 @@ export default function App() {
       {!isLoading && !isError && (
         <>
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
-
-          {totalPages > 1 && (
-            <ReactPaginate
-              pageCount={totalPages}
-              pageRangeDisplayed={5}
-              marginPagesDisplayed={1}
-              onPageChange={handlePageChange}
-              forcePage={page - 1}
-              containerClassName={css.pagination}
-              activeClassName={css.active}
-              nextLabel="→"
-              previousLabel="←"
-            />
-          )}
+          <Pagination
+            page={page}
+            setPage={handlePageChange}
+            totalPages={totalPages}
+          />
         </>
       )}
 
