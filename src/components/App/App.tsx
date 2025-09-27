@@ -51,10 +51,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (isSuccess && moviesData.length === 0) {
+    if (isSuccess && searchQuery && moviesData.length === 0) {
       toast.error("No movies found for your request.");
     }
-  }, [isSuccess, moviesData]);
+  }, [isSuccess, moviesData, searchQuery]);
 
   return (
     <>
