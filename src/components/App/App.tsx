@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import SearchBar from "../SearchBar/SearchBar";
 import MovieGrid from "../MovieGrid/MovieGrid";
@@ -8,24 +7,31 @@ import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import MovieModal from "../MovieModal/MovieModal";
 import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
+import type { MoviesResponse } from "../../services/movieService";
 import ReactPaginate from "react-paginate";
 import css from "./App.module.css";
+import { useState, useEffect, useMemo } from "react";
 
 export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isSuccess, isFetching } = useQuery({
     queryKey: ["movies", searchQuery, page],
-    queryFn: () =>
-      fetchMovies(
-        `search/movie?query=${encodeURIComponent(searchQuery)}&page=${page}`
-      ),
+    queryFn: () => fetchMovies(searchQuery, page),
     enabled: !!searchQuery,
+    placeholderData: (): MoviesResponse => ({
+      page: 1,
+      results: [],
+      total_pages: 0,
+      total_results: 0,
+    }),
+    staleTime: 5000,
   });
-  //query
-  const moviesData = data?.results || [];
+
+  const moviesData = useMemo(() => data?.results || [], [data?.results]);
+  const totalPages = data?.total_pages || 0;
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -44,20 +50,27 @@ export default function App() {
     setPage(selected + 1);
   };
 
+  useEffect(() => {
+    if (isSuccess && moviesData.length === 0) {
+      toast.error("No movies found for your request.");
+    }
+  }, [isSuccess, moviesData]);
+
   return (
     <>
       <SearchBar onSubmit={handleSearch} />
       <Toaster position="top-right" />
 
-      {isLoading && <Loader />}
+      {(isLoading || isFetching) && <Loader />}
       {isError && <ErrorMessage />}
+
       {!isLoading && !isError && (
         <>
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
 
-          {data && data.total_pages > 1 && (
+          {totalPages > 1 && (
             <ReactPaginate
-              pageCount={data.total_pages}
+              pageCount={totalPages}
               pageRangeDisplayed={5}
               marginPagesDisplayed={1}
               onPageChange={handlePageChange}
