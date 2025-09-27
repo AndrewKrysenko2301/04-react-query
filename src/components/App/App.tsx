@@ -29,7 +29,7 @@ export default function App() {
   });
 
   const moviesData = useMemo(() => data?.results || [], [data?.results]);
-  const totalPages = data?.total_pages || 0;
+  const totalPages = useMemo(() => data?.total_pages || 0, [data?.total_pages]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -63,7 +63,7 @@ export default function App() {
       {(isLoading || isFetching) && <Loader />}
       {isError && <ErrorMessage />}
 
-      {!isLoading && !isError && (
+      {!isLoading && !isError && moviesData.length > 0 && (
         <>
           <Pagination
             page={page}
