@@ -27,7 +27,6 @@ export default function App() {
     placeholderData: keepPreviousData,
   });
 
-  // Мемоизируем массив фильмов
   const moviesData = useMemo(() => data?.results || [], [data?.results]);
   const totalPages = useMemo(() => data?.total_pages || 0, [data?.total_pages]);
 
@@ -42,7 +41,6 @@ export default function App() {
 
   const handlePageChange = (selectedPage: number) => setPage(selectedPage);
 
-  // Тост при отсутствии результатов только после поиска
   useEffect(() => {
     if (hasSearched && isSuccess && moviesData.length === 0) {
       toast.error("No movies found for your request.");
@@ -70,7 +68,6 @@ export default function App() {
 
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
 
-          {/* Пагинация снизу */}
           {totalPages > 1 && (
             <Pagination
               page={page}
