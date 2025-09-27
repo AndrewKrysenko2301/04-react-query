@@ -57,7 +57,6 @@ export default function App() {
 
       {!isLoading && !isError && (
         <>
-          {/* Пагинация сверху */}
           {totalPages > 1 && (
             <Pagination
               page={page}
