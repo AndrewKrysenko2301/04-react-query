@@ -15,8 +15,7 @@ export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [previousData, setPreviousData] = useState<MoviesResponse | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const { data, isLoading, isError, isSuccess, isFetching } = useQuery<
     MoviesResponse,
@@ -25,20 +24,9 @@ export default function App() {
     queryKey: ["movies", searchQuery, page],
     queryFn: () => fetchMovies(searchQuery, page),
     enabled: !!searchQuery,
-    placeholderData: previousData || {
-      page: 1,
-      results: [],
-      total_pages: 0,
-      total_results: 0,
-    },
+    initialData: { page: 1, results: [], total_pages: 0, total_results: 0 },
     staleTime: 5000,
   });
-
-  useEffect(() => {
-    if (data) {
-      setPreviousData(data);
-    }
-  }, [data]);
 
   const moviesData = useMemo(() => data?.results || [], [data?.results]);
   const totalPages = data?.total_pages || 0;
@@ -46,6 +34,7 @@ export default function App() {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setPage(1);
+    setHasSearched(true);
   };
 
   const handleSelectMovie = (movie: Movie) => {
@@ -61,10 +50,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (isSuccess && searchQuery.trim() !== "" && moviesData.length === 0) {
+    if (hasSearched && isSuccess && moviesData.length === 0) {
       toast.error("No movies found for your request.");
     }
-  }, [isSuccess, moviesData, searchQuery]);
+  }, [hasSearched, isSuccess, moviesData]);
 
   return (
     <>
@@ -76,12 +65,13 @@ export default function App() {
 
       {!isLoading && !isError && (
         <>
-          <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
           <Pagination
             page={page}
             setPage={handlePageChange}
             totalPages={totalPages}
           />
+
+          <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
         </>
       )}
 
