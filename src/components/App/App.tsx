@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Toaster, toast } from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import SearchBar from "../SearchBar/SearchBar";
 import MovieGrid from "../MovieGrid/MovieGrid";
 import Loader from "../Loader/Loader";
@@ -24,10 +24,10 @@ export default function App() {
     queryKey: ["movies", searchQuery, page],
     queryFn: () => fetchMovies(searchQuery, page),
     enabled: !!searchQuery,
-    initialData: { page: 1, results: [], total_pages: 0, total_results: 0 },
-    staleTime: 5000,
+    placeholderData: keepPreviousData,
   });
 
+  // Мемоизируем массив фильмов
   const moviesData = useMemo(() => data?.results || [], [data?.results]);
   const totalPages = useMemo(() => data?.total_pages || 0, [data?.total_pages]);
 
@@ -37,18 +37,12 @@ export default function App() {
     setHasSearched(true);
   };
 
-  const handleSelectMovie = (movie: Movie) => {
-    setSelectedMovie(movie);
-  };
+  const handleSelectMovie = (movie: Movie) => setSelectedMovie(movie);
+  const handleCloseModal = () => setSelectedMovie(null);
 
-  const handleCloseModal = () => {
-    setSelectedMovie(null);
-  };
+  const handlePageChange = (selectedPage: number) => setPage(selectedPage);
 
-  const handlePageChange = (selectedPage: number) => {
-    setPage(selectedPage);
-  };
-
+  // Тост при отсутствии результатов только после поиска
   useEffect(() => {
     if (hasSearched && isSuccess && moviesData.length === 0) {
       toast.error("No movies found for your request.");
@@ -63,15 +57,27 @@ export default function App() {
       {(isLoading || isFetching) && <Loader />}
       {isError && <ErrorMessage />}
 
-      {!isLoading && !isError && moviesData.length > 0 && (
+      {!isLoading && !isError && (
         <>
-          <Pagination
-            page={page}
-            setPage={handlePageChange}
-            totalPages={totalPages}
-          />
+          {/* Пагинация сверху */}
+          {totalPages > 1 && (
+            <Pagination
+              page={page}
+              setPage={handlePageChange}
+              totalPages={totalPages}
+            />
+          )}
 
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
+
+          {/* Пагинация снизу */}
+          {totalPages > 1 && (
+            <Pagination
+              page={page}
+              setPage={handlePageChange}
+              totalPages={totalPages}
+            />
+          )}
         </>
       )}
 
