@@ -10,6 +10,7 @@ import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
 import type { MoviesResponse } from "../../services/movieService";
 import ReactPaginate from "react-paginate";
+import css from "./App.module.css";
 
 export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -50,15 +51,25 @@ export default function App() {
   }, [hasSearched, isSuccess, moviesData]);
 
   return (
-    <>
+    <div className={css.app}>
       <SearchBar onSubmit={handleSearch} />
       <Toaster position="top-right" />
 
-      {searchQuery && (isLoading || isFetching) && <Loader />}
+      {(isLoading || isFetching) && <Loader />}
       {isError && <ErrorMessage />}
 
-      {!isLoading && !isError && moviesData.length > 0 && (
+      {!isLoading && !isError && (
         <>
+          {totalPages > 1 && (
+            <ReactPaginate
+              pageCount={totalPages}
+              forcePage={page - 1}
+              onPageChange={handlePageChange}
+              containerClassName={css.pagination}
+              activeClassName={css.active}
+            />
+          )}
+
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
 
           {totalPages > 1 && (
@@ -66,8 +77,8 @@ export default function App() {
               pageCount={totalPages}
               forcePage={page - 1}
               onPageChange={handlePageChange}
-              containerClassName="pagination"
-              activeClassName="active"
+              containerClassName={css.pagination}
+              activeClassName={css.active}
             />
           )}
         </>
@@ -76,6 +87,6 @@ export default function App() {
       {selectedMovie && (
         <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}
-    </>
+    </div>
   );
 }
