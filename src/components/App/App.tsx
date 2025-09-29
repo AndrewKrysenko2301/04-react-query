@@ -18,7 +18,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
-  const { data, isLoading, isError, isSuccess, isFetching } = useQuery<
+  const { data, isLoading, isError, isSuccess } = useQuery<
     MoviesResponse,
     Error
   >({
@@ -55,9 +55,8 @@ export default function App() {
       <SearchBar onSubmit={handleSearch} />
       <Toaster position="top-right" />
 
-      {(isLoading || isFetching) && <Loader />}
+      {isLoading && !data && <Loader />}
       {isError && <ErrorMessage />}
-
       {!isLoading && !isError && (
         <>
           {totalPages > 1 && (
@@ -67,6 +66,8 @@ export default function App() {
               onPageChange={handlePageChange}
               containerClassName={css.pagination}
               activeClassName={css.active}
+              previousLabel="←"
+              nextLabel="→"
             />
           )}
 
