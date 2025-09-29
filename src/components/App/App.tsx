@@ -9,7 +9,7 @@ import MovieModal from "../MovieModal/MovieModal";
 import { fetchMovies } from "../../services/movieService";
 import type { Movie } from "../../types/movie";
 import type { MoviesResponse } from "../../services/movieService";
-import Pagination from "../ReactPaginate/ReactPaginate";
+import ReactPaginate from "react-paginate";
 
 export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -39,7 +39,9 @@ export default function App() {
   const handleSelectMovie = (movie: Movie) => setSelectedMovie(movie);
   const handleCloseModal = () => setSelectedMovie(null);
 
-  const handlePageChange = (selectedPage: number) => setPage(selectedPage);
+  const handlePageChange = ({ selected }: { selected: number }) => {
+    setPage(selected + 1);
+  };
 
   useEffect(() => {
     if (hasSearched && isSuccess && moviesData.length === 0) {
@@ -52,26 +54,20 @@ export default function App() {
       <SearchBar onSubmit={handleSearch} />
       <Toaster position="top-right" />
 
-      {(isLoading || isFetching) && <Loader />}
+      {searchQuery && (isLoading || isFetching) && <Loader />}
       {isError && <ErrorMessage />}
 
-      {!isLoading && !isError && (
+      {!isLoading && !isError && moviesData.length > 0 && (
         <>
-          {totalPages > 1 && (
-            <Pagination
-              page={page}
-              setPage={handlePageChange}
-              totalPages={totalPages}
-            />
-          )}
-
           <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
 
           {totalPages > 1 && (
-            <Pagination
-              page={page}
-              setPage={handlePageChange}
-              totalPages={totalPages}
+            <ReactPaginate
+              pageCount={totalPages}
+              forcePage={page - 1}
+              onPageChange={handlePageChange}
+              containerClassName="pagination"
+              activeClassName="active"
             />
           )}
         </>
