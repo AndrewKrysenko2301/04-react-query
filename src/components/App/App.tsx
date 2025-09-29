@@ -71,7 +71,9 @@ export default function App() {
             />
           )}
 
-          <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
+          {moviesData.length > 0 && (
+            <MovieGrid movies={moviesData} onSelect={handleSelectMovie} />
+          )}
 
           {totalPages > 1 && (
             <ReactPaginate
